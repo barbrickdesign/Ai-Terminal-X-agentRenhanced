@@ -8,6 +8,7 @@ Your AI-powered personal terminal assistant for **Linux** (especially Kali Linux
 
 Order in plain English — and watch real terminal magic happen instantly! 🪄
 
+
 ### 📚 **Introduction**
 
 AI-Terminal-X is **a game-changing AI-Powered Terminal Assistant** designed to revolutionize the way you interact with your Linux terminal. Whether you're a beginner, an ethical hacker, or a seasoned professional, AI-Terminal-X transforms your daily command-line operations, enhancing productivity and learning.
