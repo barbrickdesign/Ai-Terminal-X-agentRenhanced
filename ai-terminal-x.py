@@ -25,6 +25,8 @@ import sys # Needed for sys.executable and sys.exit
 import shutil
 # used for pausing briefly, like when waiting for tmux.
 import time
+# micro terminal manager for deploying lightweight sessions alongside VMs.
+import micro_terminal
 
 
 #========================================================================
@@ -263,11 +265,22 @@ def validate_command_risk(model, command_to_check):
         print(f"{red}  Error during risk check API call: {e}{reset}")
         return "Risk assessment failed due to API error; treat command as potentially risky."
 
+# in-memory cache for AI command responses to avoid repeated API calls (speed improvement).
+_ai_response_cache = {}
+
 # this talks to the ai to get the actual command and its explanation based on what the user asked for.
 def gemini_command_and_explanation(model, user_input):
     """Gets command/explanation from AI for Quick/Interactive modes."""
     # ignore empty requests.
     if not user_input.strip(): return None, None, f"{red}Input request is empty.{reset}"
+
+    # check the cache first to avoid a redundant API call.
+    cache_key = user_input.strip().lower()
+    if cache_key in _ai_response_cache:
+        cached_command, cached_explanation = _ai_response_cache[cache_key]
+        print(f"{cyan}(Using cached response for this request){reset}")
+        return cached_command, cached_explanation, None
+
     # fill in the user's request into the main prompt template.
     prompt = base_prompt.replace("{INPUT}", user_input)
     print(f"{gold}\n>>>>{blue} Asking AI for command for request: '{user_input}'...{reset}")
@@ -322,6 +335,8 @@ def gemini_command_and_explanation(model, user_input):
              # explanation = lines[1].strip() # Option to keep it anyway
 
         # return the command, explanation, and no error message (none).
+        # store the result in the cache before returning.
+        _ai_response_cache[cache_key] = (command, explanation)
         return command, explanation, None # Success
     except Exception as e:
         # handle errors during the api communication.
@@ -823,8 +838,9 @@ while True:
         print(f" {gold}[2] Interactive Mode{reset}\t{blue}(AI generates command -> Risk Check -> Ask Run/Copy/Cancel){reset}")
         # --- NEW/MODIFIED ---
         print(f" {gold}[3] Command Suggester{reset}\t{blue}(AI suggests multiple commands for a task -> Display options){reset}")
-        print(f" {gold}[4] Exit{reset}\t\t\t{blue}(Quit the application){reset}")
-        choice1 = input(f"\n>>>> {green}Enter choice [1-4]: {reset}").strip()
+        print(f" {gold}[4] Micro Terminal Manager{reset}\t{blue}(Deploy and manage micro terminals for VMs -> local/docker/ssh){reset}")
+        print(f" {gold}[5] Exit{reset}\t\t\t{blue}(Quit the application){reset}")
+        choice1 = input(f"\n>>>> {green}Enter choice [1-5]: {reset}").strip()
         
         # set the primary_mode based on their choice.
         if choice1 == "1":
@@ -836,12 +852,14 @@ while True:
         elif choice1 == "3": 
             primary_mode = "suggester"
         elif choice1 == "4":
-            # if they choose 4, exit the whole script.
+            primary_mode = "micro_terminal"
+        elif choice1 == "5":
+            # if they choose 5, exit the whole script.
             print(f"\n{red}Exiting Ai-Terminal-X. Goodbye!{reset}") 
             sys.exit(0)
         else:
             # invalid choice, loop will ask again.
-            print(f"{red}Invalid choice. Please enter 1, 2, 3, or 4.{reset}")
+            print(f"{red}Invalid choice. Please enter 1, 2, 3, 4, or 5.{reset}")
 
     # --- Stage 2: Select Execution Mode (Only if NOT Suggester Mode) ---
     # --- NEW/MODIFIED --- (Conditional execution style selection)
@@ -884,10 +902,22 @@ while True:
         print(f"{green}\n>>>>Enter a task description{reset}{green} (e.g., 'find large files', 'check network connections'){reset}")
         print(f"{gold}Type {reset}' back '{blue} to change modes, {reset}' quit '{red} to exit.{reset}")
 
+    elif primary_mode == "micro_terminal":
+        # micro terminal mode has its own interactive manager with a sub-loop.
+        print(f"\n{blue}>>> Mode Selected: {reset}{gold}Micro Terminal Manager{reset} {blue} <<<{reset}")
+
 
     # --- Inner Loop: Handle User Requests within the selected mode ---
     # now we're in a specific mode, keep handling requests until they type 'back' or 'quit'.
     while True:
+        # --- Micro Terminal Manager: delegate entirely to its own sub-loop ---
+        if primary_mode == "micro_terminal":
+            result = micro_terminal.run_micro_terminal_manager(visual_term_path_global, ai_model)
+            if result == "quit":
+                print(f"\n{red}Exiting Ai-Terminal-X as requested. Goodbye!{reset}")
+                sys.exit(0)
+            break  # "back" -> break inner loop, return to mode selection
+
         # STEP 1: Get User Input
         # --- NEW/MODIFIED --- (Prompt based on mode)
         # get the command request or control command from the user.
