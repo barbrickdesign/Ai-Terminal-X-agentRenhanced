@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+run.sh
+ai_cmd_x_history.log
