@@ -49,6 +49,8 @@ AI-Terminal-X is powered by  **Google’s Gemini AI** , making it **exceptionall
 
 ✅ **Command Suggester** — Suggests related commands based on your input
 
+✅ **Micro Terminal Manager** — Deploy lightweight micro terminals for local shells, Docker containers, and SSH hosts
+
 ✅ **Multi-layer risk check** to ensure safe execution of commands
 
 ✅ **Customizable aliases** for faster command execution
@@ -132,6 +134,35 @@ Done!🚀
 
 * Python 3.8+
 * Gemini API Key (Get it [here](https://aistudio.google.com/apikey))
+* **Optional for Micro Terminal VM deployment:**
+  * `docker` — for attaching micro terminals to Docker containers
+  * `ssh` client — for attaching micro terminals to remote SSH hosts
+
+## 🖥️ Micro Terminal Manager
+
+Select **[4] Micro Terminal Manager** from the main menu to deploy and manage lightweight terminal sessions alongside virtual machines.
+
+### Supported deployment types
+
+| Type     | Command example                                 | Description                          |
+| -------- | ----------------------------------------------- | ------------------------------------ |
+| `local`  | `new myterm`                                    | Plain shell session on the host      |
+| `docker` | `new myterm docker my-container`                | Shell inside a Docker container      |
+| `ssh`    | `new myterm ssh user@192.168.1.10`              | SSH connection to a remote host      |
+
+### Available commands inside the manager
+
+```
+new <name>                      Create a local micro terminal
+new <name> docker <container>   Attach to a Docker container
+new <name> ssh <user@host>      Connect to a remote SSH host
+open <name>                     Open a micro terminal in a window
+send <name> <command>           Send a command to a micro terminal
+destroy <name>                  Destroy a micro terminal session
+list                            Refresh the list of active micro terminals
+back                            Return to the main menu
+quit                            Exit Ai-Terminal-X
+```
 
 ## 🔄 Update Notes for `Ai-Terminal-X`
 
